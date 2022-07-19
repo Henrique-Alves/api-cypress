@@ -3,29 +3,36 @@
 
 describe('Teste de Api', () => {
 
+    let token
 
-     it('Validar criar conta', () => {
+    before(() => {
+        cy.getToken('hd@gmail.com', 'hd11223344')
+            .then(tkn => {
+                token = tkn
+            })
+    })
+
+    beforeEach(() => {
+        cy.resetRest()
+    })
+
+    it('Validar criar conta', () => {
         cy.request({
+            url: 'https://barrigarest.wcaquino.me/contas',
             method: 'POST',
-            url: 'https://barrigarest.wcaquino.me/signin',
+            headers: { Authorization: `JWT ${token}` },
             body: {
-                email: 'hd@gmail.com',
-                redirecionar: 'false',
-                senha: 'hd11223344'
+                nome: "Conta Nova2"
             }
-        }).its('body.token').should('contain',
-            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MzExMDJ9.c3ETRZxon2MAycFsMixsyWU91qKAzT3pP82RCx0uKeU')
-            /* .then(token => {      
-               cy.request({
-                url: 'https://barrigarest.wcaquino.me/contas',
-                method: 'POST',
-                headers: { Autorization: `JWT ${token}`},
-                body: {
-                    nome: "Conta Nova"
-                }
-               }).then(res => console.log(res))
-            }) */
-    }) 
+        }).as('response')
+
+
+        cy.get('@response').then(res => {
+            expect(res.status).to.be.equal(201)
+            expect(res.body).to.have.property('id')
+            expect(res.body).to.have.property('nome', 'Conta Nova2')
+        })
+    })
 
 
 })
